@@ -79,12 +79,19 @@ function processFile(filepath, map) {
 
       for (let k = 0; k < values.length; k++) {
         const value = values[k];
-        let occurrences = map.has(value) ?
-          map.get(value) : 0;
+        let entry = map.has(value) ?
+          map.get(value) : {
+            occurrences: 0,
+            filePaths: []
+          };
 
-        occurrences++;
+        entry.occurrences++;
 
-        map.set(value, occurrences);
+        if (!entry.filePaths.includes(filepath)) {
+          entry.filePaths.push(filepath);
+        }
+
+        map.set(value, entry);
       }
     }
   }
@@ -118,8 +125,8 @@ CSS Color Value Inventory
   let tableData = [];
   report.valueMap.forEach((value, key) => {
     tableData.push({
-      'Color Values': key,
-      'Occurrences': value
+      'colors': key,
+      ...value
     });
   });
 
