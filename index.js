@@ -3,12 +3,17 @@ const css = require('css');
 const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
+
 const themableProperties = new Set([
   'color', 'box-shadow', 'text-shadow', 'outline-color', 'background-image', 'background-color',
   'border-left-color', 'border-right-color', 'border-top-color', 'border-bottom-color', '-webkit-border-image',
   'fill', 'stroke'
 ]);
 const COLOR_PATTERN = /((?:rgb|hsl)a?\([^)]+\)|#[0-9a-fA-F]{8}|#[0-9a-fA-F]{6}|#[0-9a-fA-F]{3,4}|\b[a-zA-Z]+\b(?!-))/g;
+const ignoredFiles = [
+  'xterm.css',
+  'report.css' // audits2/lighthouse/report.css
+];
 
 function getColorValues(value) {
   let values = [];
@@ -40,6 +45,13 @@ function walkDir(dir, callback, files) {
 function filterFilePath(filePath, files) {
   if (!filePath.endsWith('.css')) {
     return;
+  }
+
+  for (let i = 0; i < ignoredFiles.length; i++) {
+    if (filePath.endsWith(ignoredFiles[i])) {
+      console.warn(`Ignoring filepath: ${filePath}`);
+      return;
+    }
   }
 
   files.push(filePath);
