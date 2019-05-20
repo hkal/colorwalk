@@ -1,3 +1,4 @@
+const Color = require('color');
 const css = require('css');
 const fs = require('fs');
 const path = require('path');
@@ -28,17 +29,19 @@ const colorKeywords = [
   'tan', 'teal', 'thistle', 'tomato', 'turquoise', 'violet', 'wheat', 'white', 'whitesmoke', 'yellow', 'yellowgreen'
 ];
 
-function isColorValue(value) {
-  for (let i = 0; i < colorKeywords.length; i++) {
-    if (value.includes(colorKeywords[i]) && !value.includes('var')) {
-      return true;
-    }
+const COLOR_PATTERN = /((?:rgb|hsl)a?\([^)]+\)|#[0-9a-fA-F]{8}|#[0-9a-fA-F]{6}|#[0-9a-fA-F]{3,4}|\b[a-zA-Z]+\b(?!-))/g;
+
+function getColorValues(value) {
+  let values = [];
+  const items = value.replace(COLOR_PATTERN, '\0$1\0').split('\0');
+
+  for (let i = 0; i < items.length; ++i) {
+    try {
+      values.push(Color(items[i]).rgb().string());
+    } catch(_) {}
   }
 
-  return value.includes('#') ||
-    value.includes('hsl') ||
-    value.includes('rgb') ||
-    value.includes('rgba');
+  return values;
 }
 
 function walkDir(dir, callback, files) {
@@ -81,18 +84,17 @@ function processFile(filepath, map) {
         continue;
       }
 
-      const value = declaration.value.toLowerCase();
+      const values = getColorValues(declaration.value.toLowerCase());
 
-      if (!isColorValue(value)) {
-        continue;
+      for (let k = 0; k < values.length; k++) {
+        const value = values[k];
+        let occurrences = map.has(value) ?
+          map.get(value) : 0;
+
+        occurrences++;
+
+        map.set(value, occurrences);
       }
-
-      let occurrences = map.has(value) ?
-        map.get(value) : 0;
-
-      occurrences++;
-
-      map.set(value, occurrences);
     }
   }
 }

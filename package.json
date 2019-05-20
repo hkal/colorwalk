@@ -9,6 +9,7 @@
   "author": "hkal",
   "license": "MIT",
   "dependencies": {
+    "color": "^3.1.1",
     "css": "^2.2.4"
   }
 }
